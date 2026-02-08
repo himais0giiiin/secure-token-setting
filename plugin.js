@@ -21,6 +21,13 @@ class Plugin {
     this.codePreviewObserver = null;
     this.splitListObserver = null;
 
+    this.tokenUtilityBarEl = null;
+    this.tokenStatusTextEl = null;
+    this.tokenFocusBtnEl = null;
+    this.tokenClearBtnEl = null;
+    this.boundOnTokenFocusClick = null;
+    this.boundOnTokenClearClick = null;
+
     this.shareUiEnforceTimer = null;
     this.workspaceChangeDebounceTimer = null;
   }
@@ -37,10 +44,12 @@ class Plugin {
     this.patchShareScreenshotCapture();
     this.installCodeReplacementHooks();
     this.startUiObservers();
+    this.createTokenUtilityBar();
 
     // Initial sync for already-rendered UI.
     this.applyTokenToVisibleCode();
     this.enforceShareThumbnailNotice();
+    this.updateTokenUtilityBar();
 
     console.log('Secure Token Block Plugin loaded.');
   }
@@ -52,6 +61,7 @@ class Plugin {
     this.restoreWorkspaceSerialization();
     this.removeToolboxCategory();
     this.unregisterTokenBlock();
+    this.removeTokenUtilityBar();
 
     if (this.shareUiEnforceTimer) {
       clearInterval(this.shareUiEnforceTimer);
@@ -320,6 +330,7 @@ class Plugin {
       }
       this.workspaceChangeDebounceTimer = setTimeout(() => {
         this.applyTokenToVisibleCode();
+        this.updateTokenUtilityBar();
       }, 0);
     };
 
@@ -414,16 +425,142 @@ class Plugin {
     }
   }
 
-  getTokenValue() {
-    if (!this.workspace?.getAllBlocks) {
-      return '';
+  createTokenUtilityBar() {
+    if (this.tokenUtilityBarEl) return;
+
+    const host = document.getElementById('headerActions') || document.body;
+    const bar = document.createElement('div');
+    bar.id = 'secureTokenUtilityBar';
+
+    if (host.id === 'headerActions') {
+      bar.className =
+        'inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 text-xs font-semibold';
+    } else {
+      bar.style.cssText =
+        'position:fixed;right:12px;bottom:12px;z-index:9999;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#111827;color:#f9fafb;font-size:12px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);';
     }
 
-    const blocks = this.workspace.getAllBlocks(false) || [];
-    for (const block of blocks) {
-      if (block.type !== this.blockType) {
-        continue;
+    const status = document.createElement('span');
+    status.textContent = 'トークン: 未設定';
+    status.style.whiteSpace = 'nowrap';
+
+    const focusBtn = document.createElement('button');
+    focusBtn.type = 'button';
+    focusBtn.textContent = '移動';
+    focusBtn.className = 'px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs';
+    focusBtn.title = 'トークンブロックへ移動';
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.textContent = '全消去';
+    clearBtn.className = 'px-2 py-1 rounded border border-rose-300 bg-rose-50 text-rose-700 text-xs';
+    clearBtn.title = 'すべてのトークンブロック入力値を消去';
+
+    this.boundOnTokenFocusClick = () => this.focusTokenBlock();
+    this.boundOnTokenClearClick = () => this.clearTokenValues();
+    focusBtn.addEventListener('click', this.boundOnTokenFocusClick);
+    clearBtn.addEventListener('click', this.boundOnTokenClearClick);
+
+    bar.appendChild(status);
+    bar.appendChild(focusBtn);
+    bar.appendChild(clearBtn);
+    host.appendChild(bar);
+
+    this.tokenUtilityBarEl = bar;
+    this.tokenStatusTextEl = status;
+    this.tokenFocusBtnEl = focusBtn;
+    this.tokenClearBtnEl = clearBtn;
+  }
+
+  removeTokenUtilityBar() {
+    if (this.tokenFocusBtnEl && this.boundOnTokenFocusClick) {
+      this.tokenFocusBtnEl.removeEventListener('click', this.boundOnTokenFocusClick);
+    }
+    if (this.tokenClearBtnEl && this.boundOnTokenClearClick) {
+      this.tokenClearBtnEl.removeEventListener('click', this.boundOnTokenClearClick);
+    }
+    if (this.tokenUtilityBarEl) {
+      this.tokenUtilityBarEl.remove();
+    }
+
+    this.tokenUtilityBarEl = null;
+    this.tokenStatusTextEl = null;
+    this.tokenFocusBtnEl = null;
+    this.tokenClearBtnEl = null;
+    this.boundOnTokenFocusClick = null;
+    this.boundOnTokenClearClick = null;
+  }
+
+  getTokenBlocks() {
+    if (!this.workspace?.getAllBlocks) {
+      return [];
+    }
+    return (this.workspace.getAllBlocks(false) || []).filter((block) => block?.type === this.blockType);
+  }
+
+  getFirstTokenBlock() {
+    const blocks = this.getTokenBlocks();
+    return blocks.length ? blocks[0] : null;
+  }
+
+  focusTokenBlock() {
+    const block = this.getFirstTokenBlock();
+    if (!block) return;
+
+    try {
+      if (typeof this.workspace?.centerOnBlock === 'function') {
+        this.workspace.centerOnBlock(block.id || block);
       }
+      block.select?.();
+      block.bringToFront?.();
+    } catch (error) {
+      console.warn('Failed to focus token block', error);
+    }
+  }
+
+  clearTokenValues() {
+    const blocks = this.getTokenBlocks();
+    blocks.forEach((block) => {
+      try {
+        block.setFieldValue('', 'TOKEN');
+      } catch (error) {
+        console.warn('Failed to clear token value', error);
+      }
+    });
+    this.applyTokenToVisibleCode();
+    this.updateTokenUtilityBar();
+  }
+
+  updateTokenUtilityBar() {
+    if (!this.tokenStatusTextEl) return;
+
+    const blocks = this.getTokenBlocks();
+    const token = this.getTokenValue();
+
+    if (!blocks.length) {
+      this.tokenStatusTextEl.textContent = 'トークンブロック: 未配置';
+    } else if (!token) {
+      this.tokenStatusTextEl.textContent = `トークン: 未入力 (${blocks.length}個)`;
+    } else {
+      this.tokenStatusTextEl.textContent = `トークン: 設定済み (${token.length}桁)`;
+    }
+
+    if (this.tokenFocusBtnEl) {
+      this.tokenFocusBtnEl.disabled = blocks.length === 0;
+      this.tokenFocusBtnEl.style.opacity = blocks.length === 0 ? '0.5' : '1';
+      this.tokenFocusBtnEl.style.cursor = blocks.length === 0 ? 'not-allowed' : 'pointer';
+    }
+
+    if (this.tokenClearBtnEl) {
+      this.tokenClearBtnEl.disabled = !token;
+      this.tokenClearBtnEl.style.opacity = !token ? '0.5' : '1';
+      this.tokenClearBtnEl.style.cursor = !token ? 'not-allowed' : 'pointer';
+    }
+  }
+
+  getTokenValue() {
+    const blocks = this.getTokenBlocks();
+    for (const block of blocks) {
       const token = String(block.getFieldValue('TOKEN') || '').trim();
       if (token) {
         return token;

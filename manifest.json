@@ -2,7 +2,7 @@
   "id": "secure-token-block-plugin",
   "name": "Tokenブロックプラグイン",
   "author": "himais0giiiin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "ローカルに保存しないなど、セキュリティに配慮したToken入力ブロックを追加します。",
   "affectsStyle": false,
   "affectsBlocks": true,
