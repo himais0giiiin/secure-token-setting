@@ -85,7 +85,7 @@ class Plugin {
       init: function () {
         const digitsOnlyValidator = (value) => String(value ?? '').replace(/[^0-9]/g, '');
         this.appendDummyInput()
-          .appendField('BotToken')
+          .appendField('Botトークン')
           .appendField(new Blockly.FieldTextInput('', digitsOnlyValidator), 'TOKEN');
         this.setColour(6);
         this.setTooltip(
