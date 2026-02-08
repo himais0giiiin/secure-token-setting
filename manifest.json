@@ -1,0 +1,11 @@
+{
+  "id": "secure-token-block-plugin",
+  "name": "Secure Token Block Plugin",
+  "author": "himais0giiiin",
+  "version": "1.0.0",
+  "description": "Adds a secure token input block for code generation, excludes token value from share/localStorage, and disables share screenshot preview.",
+  "affectsStyle": false,
+  "affectsBlocks": true,
+  "isCustom": false,
+  "repo": "https://github.com/himais0giiiin/secure-token-block-plugin"
+}
