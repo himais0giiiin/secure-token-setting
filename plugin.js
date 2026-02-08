@@ -3,10 +3,10 @@ class Plugin {
     this.workspace = workspace;
 
     this.blockType = 'secure_token_for_codegen';
-    this.toolboxCategoryName = 'セキュリティ';
+    this.toolboxCategoryName = 'トークン';
     this.toolboxCategoryColor = '#c0392b';
     this.shareScreenshotNotice =
-      'セキュリティ保護のため、このプロジェクトの共有プレビュー画像は撮影できません。';
+      'セキュリティ保護のため、このプロジェクトの共有画像は撮影できません。';
 
     this.toolboxCategoryElement = null;
     this.originalSerializationSave = null;
@@ -74,7 +74,7 @@ class Plugin {
     Blockly.Blocks[blockType] = {
       init: function () {
         this.appendDummyInput()
-          .appendField('🔐 コード生成トークン')
+          .appendField('Botトークン')
           .appendField(new Blockly.FieldTextInput(''), 'TOKEN');
         this.setColour(6);
         this.setTooltip(
