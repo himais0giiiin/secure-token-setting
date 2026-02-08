@@ -73,12 +73,13 @@ class Plugin {
 
     Blockly.Blocks[blockType] = {
       init: function () {
+        const digitsOnlyValidator = (value) => String(value ?? '').replace(/[^0-9]/g, '');
         this.appendDummyInput()
           .appendField('Botトークン')
-          .appendField(new Blockly.FieldTextInput(''), 'TOKEN');
+          .appendField(new Blockly.FieldTextInput('', digitsOnlyValidator), 'TOKEN');
         this.setColour(6);
         this.setTooltip(
-          '生成コードの TOKEN をこの値に置き換えます。値は共有データ・localStorage に保存されません。',
+          '生成コードの TOKEN をこの値に置き換えます。数字のみ入力できます。値は共有データ・localStorage に保存されません。',
         );
       },
     };
