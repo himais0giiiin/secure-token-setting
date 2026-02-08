@@ -3,7 +3,7 @@ class Plugin {
     this.workspace = workspace;
 
     this.blockType = 'secure_token_for_codegen';
-    this.toolboxCategoryName = 'トークン';
+    this.toolboxCategoryName = 'Token';
     this.toolboxCategoryColor = '#c0392b';
     this.shareScreenshotNotice =
       'セキュリティ保護のため、このプロジェクトの共有画像は撮影できません。';
@@ -85,7 +85,7 @@ class Plugin {
       init: function () {
         const digitsOnlyValidator = (value) => String(value ?? '').replace(/[^0-9]/g, '');
         this.appendDummyInput()
-          .appendField('Botトークン')
+          .appendField('BotToken')
           .appendField(new Blockly.FieldTextInput('', digitsOnlyValidator), 'TOKEN');
         this.setColour(6);
         this.setTooltip(
@@ -441,20 +441,20 @@ class Plugin {
     }
 
     const status = document.createElement('span');
-    status.textContent = 'トークン: 未設定';
+    status.textContent = 'Token: 未設定';
     status.style.whiteSpace = 'nowrap';
 
     const focusBtn = document.createElement('button');
     focusBtn.type = 'button';
     focusBtn.textContent = '移動';
     focusBtn.className = 'px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs';
-    focusBtn.title = 'トークンブロックへ移動';
+    focusBtn.title = 'Tokenブロックへ移動';
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.textContent = '全消去';
     clearBtn.className = 'px-2 py-1 rounded border border-rose-300 bg-rose-50 text-rose-700 text-xs';
-    clearBtn.title = 'すべてのトークンブロック入力値を消去';
+    clearBtn.title = 'すべてのTokenブロック入力値を消去';
 
     this.boundOnTokenFocusClick = () => this.focusTokenBlock();
     this.boundOnTokenClearClick = () => this.clearTokenValues();
@@ -538,11 +538,11 @@ class Plugin {
     const token = this.getTokenValue();
 
     if (!blocks.length) {
-      this.tokenStatusTextEl.textContent = 'トークンブロック: 未配置';
+      this.tokenStatusTextEl.textContent = 'Token: 未配置';
     } else if (!token) {
-      this.tokenStatusTextEl.textContent = `トークン: 未入力 (${blocks.length}個)`;
+      this.tokenStatusTextEl.textContent = `Token: 未入力 (${blocks.length}個)`;
     } else {
-      this.tokenStatusTextEl.textContent = `トークン: 設定済み (${token.length}桁)`;
+      this.tokenStatusTextEl.textContent = `Token: 設定済み (${token.length}桁)`;
     }
 
     if (this.tokenFocusBtnEl) {
