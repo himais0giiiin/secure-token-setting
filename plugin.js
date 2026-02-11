@@ -83,14 +83,17 @@ class Plugin {
 
     Blockly.Blocks[blockType] = {
       init: function () {
-        const alphanumericValidator = (value) =>
-          String(value ?? '').replace(/[^A-Za-z0-9]/g, '');
+        const disallowJapaneseValidator = (value) =>
+          String(value ?? '').replace(
+            /[\u3040-\u30FF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF66-\uFF9F\u3000-\u303F]/g,
+            '',
+          );
         this.appendDummyInput()
           .appendField('Botトークン')
-          .appendField(new Blockly.FieldTextInput('', alphanumericValidator), 'TOKEN');
+          .appendField(new Blockly.FieldTextInput('', disallowJapaneseValidator), 'TOKEN');
         this.setColour(6);
         this.setTooltip(
-          '生成コードの TOKEN をこの値に置き換えます。英数字のみ入力できます。値は共有データ・localStorage に保存されません。',
+          '生成コードの TOKEN をこの値に置き換えます。日本語は入力できません。値は共有データ・localStorage に保存されません。',
         );
       },
     };
