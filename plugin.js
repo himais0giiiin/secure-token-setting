@@ -589,7 +589,9 @@ class Plugin {
 
     return source
       .replace(/bot\.run\("TOKEN"\)/g, `bot.run("${escapedDouble}")`)
-      .replace(/bot\.run\('TOKEN'\)/g, `bot.run('${escapedSingle}')`);
+      .replace(/bot\.run\('TOKEN'\)/g, `bot.run('${escapedSingle}')`)
+      .replace(/(token\s*=\s*)"TOKEN"/g, (_, prefix) => `${prefix}"${escapedDouble}"`)
+      .replace(/(token\s*=\s*)'TOKEN'/g, (_, prefix) => `${prefix}'${escapedSingle}'`);
   }
 
   applyTokenToVisibleCode() {
